@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,10 +29,14 @@ import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
 
-    private val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+    private lateinit var sensorManager: SensorManager
+
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
+        Log.d("MainActivity", "onCreate called")
+
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
         setContent {
             LightSensor(sensorManager)
@@ -42,13 +47,19 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LightSensor(sensorManager: SensorManager){
+    Log.d("LightSensor", "LightSensor Composable started")
     var lightValue by remember { mutableFloatStateOf(0f) }
 
     val lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+    if (lightSensor == null) {
+        Log.e("LightSensor", "Light sensor not available on this device/emulator")
+        return
+    }
     val lightSensorListener = remember {
         object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 lightValue = event.values[0]
+                Log.d("LightSensor", "Lux value: $lightValue")
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
